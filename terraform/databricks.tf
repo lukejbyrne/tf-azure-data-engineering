@@ -32,22 +32,6 @@ resource "databricks_notebook" "notebooks" {
   format         = "SOURCE"
 }
 
-# Create a Job to Run the Notebook on the Cluster
-resource "databricks_job" "run_notebook" {
-  name = "Run Example Notebook"
-
-  notebook_task {
-    notebook_path = databricks_notebook.example_notebook.path
-  }
-
-  new_cluster {
-    cluster_name            = databricks_cluster.cluster.cluster_name
-    spark_version           = databricks_cluster.cluster.spark_version
-    node_type_id            = databricks_cluster.cluster.node_type_id
-    num_workers             = databricks_cluster.cluster.num_workers
-  }
-}
-
 # Create Databricks Cluster
 resource "databricks_cluster" "cluster" {
   cluster_name            = "example-cluster"
