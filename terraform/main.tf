@@ -15,66 +15,6 @@ resource "azurerm_key_vault" "kv" {
   sku_name            = "standard"
 }
 
-# Azure Data Lake Storage (ADLS)
-resource "azurerm_storage_account" "adls" {
-  name                     = "stgdatapipeline"
-  resource_group_name      = azurerm_resource_group.rg.name
-  location                 = azurerm_resource_group.rg.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-  account_kind             = "StorageV2"
-  is_hns_enabled           = "true"
-}
-
-resource "azurerm_storage_container" "bronze" {
-  name                  = "bronze"
-  storage_account_name  = azurerm_storage_account.adls.name
-  container_access_type = "private"
-}
-
-resource "azurerm_storage_container" "silver" {
-  name                  = "silver"
-  storage_account_name  = azurerm_storage_account.adls.name
-  container_access_type = "private"
-}
-
-resource "azurerm_storage_container" "gold" {
-  name                  = "gold"
-  storage_account_name  = azurerm_storage_account.adls.name
-  container_access_type = "private"
-}
-
-# Azure Data Factory (ADF)
-resource "azurerm_data_factory" "adf" {
-  name                = "adf-datapipeline"
-  location            = azurerm_resource_group.rg.location
-  resource_group_name = azurerm_resource_group.rg.name
-}
-
-# Azure Databricks
-resource "azurerm_databricks_workspace" "databricks" {
-  name                = "databricks-datapipeline"
-  location            = azurerm_resource_group.rg.location
-  resource_group_name = azurerm_resource_group.rg.name
-  sku                 = "standard"
-}
-
-# Azure Synapse Analytics
-resource "azurerm_synapse_workspace" "synapse" {
-  name                = "synapse-datapipeline"
-  location            = azurerm_resource_group.rg.location
-  resource_group_name = azurerm_resource_group.rg.name
-  storage_data_lake_gen2_filesystem_id = azurerm_storage_account.adls
-  sql_administrator_login          = "synapseadmin"
-  sql_administrator_login_password = "Password123!"
-}
-
-resource "azurerm_synapse_sql_pool" "sqlpool" {
-  name                = "synapsesqlpool"
-  synapse_workspace_id      = azurerm_synapse_workspace.synapse.id
-  sku_name            = "DW200c"
-}
-
 # Step 2: Data Ingestion
 # You will need to manually configure the on-prem SQL Server and set up pipelines in ADF via UI or additional scripts.
 
