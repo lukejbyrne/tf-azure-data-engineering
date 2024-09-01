@@ -44,7 +44,6 @@ resource "databricks_job" "run_notebook" {
     cluster_name            = databricks_cluster.cluster.cluster_name
     spark_version           = databricks_cluster.cluster.spark_version
     node_type_id            = databricks_cluster.cluster.node_type_id
-    autotermination_minutes = databricks_cluster.cluster.autotermination_minutes
     num_workers             = databricks_cluster.cluster.num_workers
   }
 }

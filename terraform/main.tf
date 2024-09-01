@@ -1,5 +1,3 @@
-
-
 # Step 1: Azure Environment Setup
 resource "azurerm_resource_group" "rg" {
   name     = "rg-data-pipeline"

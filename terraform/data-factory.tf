@@ -1,9 +1,3 @@
-# Resource Group
-resource "azurerm_resource_group" "rg" {
-  name     = "rg-data-pipeline"
-  location = "West Europe"
-}
-
 # Azure Data Factory
 resource "azurerm_data_factory" "adf" {
   name                = "adf-datapipeline"
@@ -53,52 +47,42 @@ resource "azurerm_data_factory_dataset_delimited_text" "adls_dataset" {
   data_factory_id   = azurerm_data_factory.adf.id
 
   linked_service_name = azurerm_data_factory_linked_service_data_lake_storage.adls_linked_service.name
-  folder_path         = "your-folder-path"
-  file_name           = "output.csv"
-  format {
-    type = "TextFormat"
+  azure_blob_storage_location {
+    container = azurerm_storage_container.bronze
+    path         = "your-folder-path"
+    filename           = "output.csv"
   }
 }
 
 # Pipeline to Copy Data from SQL to ADLS
 resource "azurerm_data_factory_pipeline" "copy_pipeline" {
-  name                = "copyPipeline"
-  data_factory_id   = azurerm_data_factory.adf.id
+  name            = "copyPipeline"
+  data_factory_id = azurerm_data_factory.adf.id
 
-  activity {
-    name = "CopyFromSqlToAdls"
-    type = "Copy"
-
-    inputs {
-      name = azurerm_data_factory_dataset_sql_server_table.sql_dataset.name
-    }
-
-    outputs {
-      name = azurerm_data_factory_dataset_delimited_text.adls_dataset.name
-    }
-
-    copy_activity {
-      source {
-        type = "SqlSource"
+  activities_json = jsonencode([
+    {
+      "name": "CopyFromSqlToAdls",
+      "type": "Copy",
+      "inputs": [
+        {
+          "referenceName": azurerm_data_factory_dataset_sql_server_table.sql_dataset.name,
+          "type": "DatasetReference"
+        }
+      ],
+      "outputs": [
+        {
+          "referenceName": azurerm_data_factory_dataset_delimited_text.adls_dataset.name,
+          "type": "DatasetReference"
+        }
+      ],
+      "typeProperties": {
+        "source": {
+          "type": "SqlSource"
+        },
+        "sink": {
+          "type": "AzureDataLakeStoreSink"
+        }
       }
-
-      sink {
-        type = "AzureDataLakeStoreSink"
-      }
     }
-  }
-}
-
-# Trigger to Run Pipeline
-resource "azurerm_data_factory_trigger_schedule" "daily_trigger" {
-  name                = "dailyTrigger"
-  data_factory_id   = azurerm_data_factory.adf.id
-  pipeline_name       = azurerm_data_factory_pipeline.copy_pipeline.name
-
-  schedule {
-    frequency = "Day"
-    interval  = 1
-  }
-
-  pipeline_parameters = {}
+  ])
 }
