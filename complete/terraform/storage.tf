@@ -9,20 +9,13 @@ resource "azurerm_storage_account" "adls" {
   is_hns_enabled           = "true"
 }
 
-resource "azurerm_storage_container" "bronze" {
-  name                  = "bronze"
-  storage_account_name  = azurerm_storage_account.adls.name
-  container_access_type = "private"
+variable "containers" {
+  default = ["bronze", "silver", "gold"]
 }
 
-resource "azurerm_storage_container" "silver" {
-  name                  = "silver"
-  storage_account_name  = azurerm_storage_account.adls.name
-  container_access_type = "private"
-}
-
-resource "azurerm_storage_container" "gold" {
-  name                  = "gold"
-  storage_account_name  = azurerm_storage_account.adls.name
+resource "azurerm_storage_container" "containers" {
+  for_each              = toset(var.containers)
+  name                  = each.key
+  storage_account_id    = azurerm_storage_account.adls.id
   container_access_type = "private"
 }

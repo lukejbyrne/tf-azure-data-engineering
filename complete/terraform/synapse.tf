@@ -8,10 +8,13 @@ resource "azurerm_synapse_workspace" "synapse" {
   sql_administrator_login_password = "Password123!"
 }
 
-resource "azurerm_synapse_sql_pool" "sqlpool" {
-  name                = "synapsesqlpool"
-  synapse_workspace_id      = azurerm_synapse_workspace.synapse.id
-  sku_name            = "DW200c"
+resource "azurerm_synapse_spark_pool" "sparkpool" {
+  name                = "sparksqlpool"
+  synapse_workspace_id = azurerm_synapse_workspace.synapse.id
+  node_size           = "Small" # Use the smallest node size
+  node_size_family    = "MemoryOptimized" # Specify the node size family
+  node_count          = 3       # Minimum number of nodes
+  spark_version       = "2.4"   # Specify the Spark version
 }
 
 resource "null_resource" "create_view" {
